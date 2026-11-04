@@ -84,3 +84,36 @@ test('cells stay on one line, and flexible columns share the width and truncate'
     // Rendered cells name their own contents
     expect(cell('owner')).not.toHaveAttribute('title');
 });
+
+describe('status buttons', () => {
+    const statusRows = rows.map((row) => ({ ...row, status: row.n === 28 ? 'Done' : 'Open' }));
+    const statusTable = (props) => table({
+        rows: statusRows, statuses: ['Open', 'Done'], statusOf: (row) => row.status, defaultStatuses: ['Open'], ...props,
+    });
+    const pressed = (name) => screen.getByRole('button', { name }).getAttribute('aria-pressed');
+
+    test('start with the default statuses', () => {
+        render(statusTable());
+        expect(pressed('Open')).toBe('true');
+        expect(pressed('Done')).toBe('false');
+        userEvent.click(screen.getByRole('button', { name: 'Go to next page' }));
+        expect(ids()).toEqual(['row-25', 'row-26', 'row-27', 'row-29']);
+        // Changing the statuses starts over on the first page
+        userEvent.click(screen.getByRole('button', { name: 'Done' }));
+        userEvent.click(screen.getByRole('button', { name: 'Go to next page' }));
+        expect(ids()).toEqual(['row-25', 'row-26', 'row-27', 'row-28', 'row-29']);
+    });
+
+    test('show the status of a row selected from elsewhere', () => {
+        const { rerender } = render(statusTable());
+        rerender(statusTable({ selectedId: 'row-28' }));
+        expect(pressed('Done')).toBe('true');
+        expect(ids()).toContain('row-28');
+    });
+
+    test('show the status and the page of a row that is selected when the table opens', () => {
+        render(statusTable({ selectedId: 'row-28' }));
+        expect(pressed('Done')).toBe('true');
+        expect(ids()).toContain('row-28');
+    });
+});

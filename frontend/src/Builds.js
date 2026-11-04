@@ -193,6 +193,8 @@ class Builds extends React.Component {
           defaultSort={{ key: 'scheduled', order: 'desc' }}
           storageKey={COLUMN_VISIBILITY_STORAGE_KEY}
           statuses={STATUSES}
+          // Builds that have ended are shown on request
+          defaultStatuses={['Active']}
           statusOf={(build) => buildStatusName(build.Status)}
           searchLabel="Search builds"
           searchPlaceholder="ID, owner, origin or parameter"

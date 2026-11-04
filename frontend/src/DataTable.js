@@ -171,7 +171,8 @@ class DataTable extends React.Component {
       orderBy: props.defaultSort.key,
       order: props.defaultSort.order,
       search: '',
-      statuses: props.statuses || [],
+      // The selected status buttons; all of them unless defaultStatuses are given.
+      statuses: props.defaultStatuses || props.statuses || [],
       columnFilters: {},
       filterColumn: null,
       filterAnchor: null,
@@ -182,15 +183,34 @@ class DataTable extends React.Component {
     };
   }
 
+  componentDidMount() {
+    this.showSelected();
+  }
+
   componentDidUpdate(prevProps) {
-    // Show the page of a row that was selected from elsewhere
-    const { selectedId } = this.props;
-    if (selectedId && selectedId !== prevProps.selectedId) {
-      const index = this.filteredRows().findIndex((row) => this.props.getId(row) === selectedId);
-      if (index >= 0) {
-        this.setState({ page: Math.floor(index / this.state.rowsPerPage) });
-      }
+    if (this.props.selectedId !== prevProps.selectedId) {
+      this.showSelected();
     }
+  }
+
+  // Show a row that was selected from elsewhere: select its status, so that
+  // the status buttons don't hide it, and go to its page.
+  showSelected() {
+    const { selectedId, rows, statuses, statusOf, getId } = this.props;
+    if (!selectedId) {
+      return;
+    }
+    this.setState((prevState) => {
+      const row = rows.find((r) => getId(r) === selectedId);
+      const status = row && statuses ? statusOf(row) : undefined;
+      const shown = statuses?.includes(status) && !prevState.statuses.includes(status)
+        ? [...prevState.statuses, status] : prevState.statuses;
+      const index = this.filteredRows({ ...prevState, statuses: shown }).findIndex((r) => getId(r) === selectedId);
+      if (index < 0) {
+        return shown === prevState.statuses ? null : { statuses: shown };
+      }
+      return { statuses: shown, page: Math.floor(index / prevState.rowsPerPage) };
+    });
   }
 
   setVisibility(visibility) {
@@ -213,9 +233,9 @@ class DataTable extends React.Component {
 
   // The rows that pass the search, the status buttons and the column
   // filters, sorted.
-  filteredRows() {
+  filteredRows(state = this.state) {
     const { rows, columns, statuses, statusOf, searchTexts, defaultSort } = this.props;
-    const { orderBy, order, search, columnFilters } = this.state;
+    const { orderBy, order, search, columnFilters } = state;
     const column = columns.find(({ key }) => key === orderBy) || columns.find(({ key }) => key === defaultSort.key);
     const fallback = columns.find(({ key }) => key === defaultSort.key);
     const direction = order === 'asc' ? 1 : -1;
@@ -224,7 +244,7 @@ class DataTable extends React.Component {
       .map((c) => ({ key: c.key, text: (row) => columnText(c, row) }));
     return rows
       .filter((row) =>
-        (!statuses || !statuses.includes(statusOf(row)) || this.state.statuses.includes(statusOf(row))) &&
+        (!statuses || !statuses.includes(statusOf(row)) || state.statuses.includes(statusOf(row))) &&
         (!searchTexts || matchesSearch(searchTexts(row), search)) &&
         matchesColumnFilters(row, filterColumns, columnFilters))
       // Ties keep the default order

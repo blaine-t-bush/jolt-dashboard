@@ -785,6 +785,19 @@ test('the build button of a task shows its build, expanded', () => {
     expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument();
 });
 
+test('the build button of a task shows its build also when the build has ended', () => {
+    const completed = { ...BUILD, Status: 'BUILD_COMPLETED' };
+    render(<App />);
+    snapshot(BUILD_TASKS.map((t) => ({ ...t, Build: completed })), [], 0, [completed]);
+    openBuilds();
+    expect(within(screen.getByRole('table', { name: 'Builds' })).getByText('No matching builds')).toBeInTheDocument();
+    openTasks();
+    userEvent.click(screen.getByRole('button', { name: 'Show the build of Compile' }));
+    const toolbar = screen.getByRole('toolbar', { name: 'Build controls' });
+    expect(within(toolbar).getByRole('button', { name: 'Completed' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(screen.getByRole('table', { name: 'Builds' })).getByText('build-012345')).toBeInTheDocument();
+});
+
 test('builds can only be stopped when signed in', async () => {
     auth.loadConfig.mockResolvedValue({ issuer: 'https://idp/realms/jolt', clientId: 'jolt' });
     render(<App />);
@@ -901,11 +914,11 @@ test('builds are filtered by status and by searching their IDs, owners, origins 
     snapshot(BUILD_TASKS, [], 0, [BUILD, cancelled, other]);
     const visible = () => within(screen.getByRole('table', { name: 'Builds' })).getAllByRole('row')
         .map((row) => row.querySelector('td:nth-child(3)')?.textContent).filter(Boolean).sort();
-    expect(visible()).toEqual(['build-012345', 'cancelled', 'other-build']);
-
     const toolbar = screen.getByRole('toolbar', { name: 'Build controls' });
-    userEvent.click(within(toolbar).getByRole('button', { name: 'Cancelled' }));
+    const pressed = (name) => within(toolbar).getByRole('button', { name }).getAttribute('aria-pressed');
+    // Only active builds are shown at first
     expect(visible()).toEqual(['build-012345', 'other-build']);
+    expect(['Active', 'Completed', 'Cancelled', 'Rejected'].map(pressed)).toEqual(['true', 'false', 'false', 'false']);
 
     const search = screen.getByRole('textbox', { name: 'Search builds' });
     userEvent.type(search, 'branch=release');
