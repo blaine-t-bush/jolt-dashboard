@@ -1,4 +1,4 @@
-import { buildDuration, buildRows, buildStatusName, buildsFromTasks, formatSeconds, isActive } from './buildStats';
+import { buildDuration, buildRows, buildStatusName, buildsFromTasks, formatSeconds, hasRunningBuild, isActive } from './buildStats';
 
 const tasks = [
     { id: 'a', BuildId: 'b1', Status: 'Passed', Queued: '2026-10-29 10:00:00', Started: '2026-10-29 10:00:10', Ended: '2026-10-29 10:01:10' },
@@ -40,4 +40,10 @@ test('build statuses and durations are readable', () => {
     expect(isActive({ Status: 'BUILD_COMPLETED' })).toBe(false);
     expect(formatSeconds(3723.25)).toBe('1h 2m 3.3s');
     expect(formatSeconds(null)).toBe('');
+});
+
+test('a build runs while it has unfinished tasks', () => {
+    expect(hasRunningBuild([{ BuildId: 'b', Status: 'Running' }, { BuildId: 'c', Status: 'Passed' }])).toBe(true);
+    expect(hasRunningBuild([{ BuildId: 'b', Status: 'Queued' }])).toBe(true);
+    expect(hasRunningBuild([{ BuildId: 'b', Status: 'Passed' }, { BuildId: '', Status: 'Running' }])).toBe(false);
 });

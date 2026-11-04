@@ -871,6 +871,9 @@ test('build durations are rounded to whole seconds', () => {
     openBuilds();
     const duration = () => screen.getByRole('table', { name: 'Builds' }).querySelector('td[data-field="duration"]').textContent;
     expect(duration()).toBe('1m 0s');
+    // The duration of a running build grows with the clock
+    act(() => { jest.advanceTimersByTime(1000); });
+    expect(duration()).toBe('1m 1s');
 });
 
 test('a build without owners shows the username parameter as its owner', () => {

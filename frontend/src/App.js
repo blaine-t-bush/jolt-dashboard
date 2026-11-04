@@ -7,7 +7,7 @@ import { formatDuration, hasWaitingTask, queueTimeMetrics } from './metrics'
 import Tasks from './Tasks';
 import Workers from './Workers';
 import Builds from './Builds';
-import { buildRows } from './buildStats';
+import { buildRows, hasRunningBuild } from './buildStats';
 import * as auth from './auth';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -242,12 +242,14 @@ class App extends React.Component {
       .then((signedIn) => signedIn && this.mounted && this.setState({ user: auth.currentUser() }))
       .catch((error) => this.mounted && this.notify('error', `Sign-in failed: ${error.message}`));
 
-    // The queue time of a task that has not started yet grows with the wall
-    // clock, so a changing task list is not enough to keep those metrics
-    // current. Tick while anything is waiting; the task list drives every
-    // other update on its own.
+    // The queue time of a task that has not started yet, and the duration of
+    // a build that has unfinished tasks, grow with the wall clock, so a
+    // changing task list is not enough to keep them current. Tick while
+    // anything is waiting, or while the builds tab shows a running build;
+    // the task list drives every other update on its own.
     this.ticker = setInterval(() => {
-      if (hasWaitingTask(this.state.tasks)) {
+      if (hasWaitingTask(this.state.tasks) ||
+        (this.state.menuItem === TAB_BUILDS && hasRunningBuild(this.state.tasks))) {
         this.forceUpdate();
       }
     }, 1000);

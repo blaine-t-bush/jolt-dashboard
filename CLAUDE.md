@@ -120,7 +120,8 @@ callback does not update `this.state` synchronously under React 18's automatic b
 computing a metric right after `setState({tasks})` reads the previous task list. Queue time lives in
 `frontend/src/metrics.js` as pure functions of `(tasks, now)`; `App` calls them from `render` with
 `Date.now()` and keeps a one-second ticker only to force re-renders while a task is still waiting
-(`hasWaitingTask`).
+(`hasWaitingTask`), or while the Builds tab shows a build with unfinished tasks, whose duration
+grows with the clock (`hasRunningBuild`).
 
 ## Gotchas
 

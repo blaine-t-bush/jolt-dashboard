@@ -43,6 +43,12 @@ function emptyBuild(id) {
   };
 }
 
+// Whether a build has unfinished tasks, so that its duration grows with the
+// clock.
+export function hasRunningBuild(tasks) {
+  return tasks.some((task) => task.BuildId && ['Queued', 'Assigned', 'Running'].includes(task.Status));
+}
+
 // Groups tasks by build. Builds the scheduler hasn't described yet still
 // get a row, with only their ID.
 export function buildsFromTasks(tasks) {
