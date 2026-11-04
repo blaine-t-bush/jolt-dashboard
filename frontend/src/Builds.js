@@ -128,6 +128,11 @@ function BuildDetails({ build }) {
 class Builds extends React.Component {
   columns() {
     const { now, user, filterBuildId, onFilter, onStop } = this.props;
+    // In whole seconds, which is precise enough for builds
+    const duration = (build) => {
+      const seconds = buildDuration(build, now);
+      return seconds === null ? null : Math.round(seconds);
+    };
     return [
       {
         key: 'build', label: 'Build', value: (build) => build.id,
@@ -145,8 +150,8 @@ class Builds extends React.Component {
       { key: 'tasks', label: 'Tasks', value: activeTasks, text: taskSummary, flex: 1 },
       { key: 'scheduled', label: 'Scheduled', value: scheduled, text: (build) => build.Scheduled },
       {
-        key: 'duration', label: 'Duration', value: (build) => buildDuration(build, now) ?? -1,
-        text: (build) => formatSeconds(buildDuration(build, now)),
+        key: 'duration', label: 'Duration', value: (build) => duration(build) ?? -1,
+        text: (build) => formatSeconds(duration(build)),
       },
       { key: 'status', label: 'Status', value: (build) => buildStatusName(build.Status) },
       {

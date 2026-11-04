@@ -863,6 +863,16 @@ test('clicking anywhere on a build row expands and collapses it, but its actions
     expect(row).toHaveAttribute('aria-expanded', 'false');
 });
 
+test('build durations are rounded to whole seconds', () => {
+    // Queued 59.6 seconds ago, and still running
+    const running = { ...task('build-task', 'Running', 60000, 30000), BuildId: BUILD.id, Build: BUILD, Queued: `${stamp(NOW - 60000)}.400` };
+    render(<App />);
+    snapshot([running], [], 0, [BUILD]);
+    openBuilds();
+    const duration = () => screen.getByRole('table', { name: 'Builds' }).querySelector('td[data-field="duration"]').textContent;
+    expect(duration()).toBe('1m 0s');
+});
+
 test('a build without owners shows the username parameter as its owner', () => {
     const anonymous = {
         ...BUILD, id: 'anon-build', Id: 'anon-build', Owners: [],
