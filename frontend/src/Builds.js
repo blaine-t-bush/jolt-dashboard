@@ -129,7 +129,6 @@ class Builds extends React.Component {
   columns() {
     const { now, user, filterBuildId, onFilter, onStop } = this.props;
     return [
-      { key: 'status', label: 'Status', value: (build) => buildStatusName(build.Status) },
       {
         key: 'build', label: 'Build', value: (build) => build.id,
         render: (build) => <span title={build.id}>{shortId(build.id)}</span>,
@@ -143,12 +142,13 @@ class Builds extends React.Component {
         key: 'origin', label: 'Origin', value: (build) => build.Origin,
         render: (build) => <Attribution value={build.Origin} compact />, flex: 2,
       },
-      { key: 'scheduled', label: 'Scheduled', value: scheduled, text: (build) => build.Scheduled },
       { key: 'tasks', label: 'Tasks', value: activeTasks, text: taskSummary, flex: 1 },
+      { key: 'scheduled', label: 'Scheduled', value: scheduled, text: (build) => build.Scheduled },
       {
         key: 'duration', label: 'Duration', value: (build) => buildDuration(build, now) ?? -1,
         text: (build) => formatSeconds(buildDuration(build, now)),
       },
+      { key: 'status', label: 'Status', value: (build) => buildStatusName(build.Status) },
       {
         key: 'actions', label: 'Actions', sortable: false, filterable: false, stopClick: true, sx: { py: 0 },
         render: (build) => {

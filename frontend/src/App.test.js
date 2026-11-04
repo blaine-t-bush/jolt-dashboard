@@ -733,6 +733,9 @@ test('the builds tab lists the builds of the scheduler with the statistics of th
     openBuilds();
 
     const table = screen.getByRole('table', { name: 'Builds' });
+    // Like the task view, the status is next to the actions
+    expect(within(table).getAllByRole('columnheader').map((header) => header.getAttribute('aria-label')).filter(Boolean))
+        .toEqual(['Build', 'Owners', 'Origin', 'Tasks', 'Scheduled', 'Duration', 'Status', 'Actions']);
     const row = within(table).getByText('build-012345').closest('tr');
     expect(within(row).getByText('Active')).toBeInTheDocument();
     expect(within(row).getByText('1 Running')).toBeInTheDocument();
@@ -889,7 +892,7 @@ test('clicking a builds column header sorts by it, and clicking again reverses t
     render(<App />);
     snapshot(BUILD_TASKS, [], 0, [older, BUILD, newer]);
     const order = () => within(screen.getByRole('table', { name: 'Builds' })).getAllByRole('row')
-        .map((row) => row.querySelector('td:nth-child(3)')?.textContent).filter(Boolean);
+        .map((row) => row.querySelector('td[data-field="build"]')?.textContent).filter(Boolean);
 
     // Newest first by default
     expect(order()).toEqual(['newer-build', 'build-012345', 'older-build']);
@@ -913,7 +916,7 @@ test('builds are filtered by status and by searching their IDs, owners, origins 
     render(<App />);
     snapshot(BUILD_TASKS, [], 0, [BUILD, cancelled, other]);
     const visible = () => within(screen.getByRole('table', { name: 'Builds' })).getAllByRole('row')
-        .map((row) => row.querySelector('td:nth-child(3)')?.textContent).filter(Boolean).sort();
+        .map((row) => row.querySelector('td[data-field="build"]')?.textContent).filter(Boolean).sort();
     const toolbar = screen.getByRole('toolbar', { name: 'Build controls' });
     const pressed = (name) => within(toolbar).getByRole('button', { name }).getAttribute('aria-pressed');
     // Only active builds are shown at first
@@ -940,7 +943,7 @@ test('builds are filtered by the text of their columns', () => {
     // An open filter hides the rest of the page from assistive technology, like a dialog
     const table = () => screen.getByRole('table', { name: 'Builds', hidden: true });
     const visible = () => within(table()).getAllByRole('row', { hidden: true })
-        .map((row) => row.querySelector('td:nth-child(3)')?.textContent).filter(Boolean).sort();
+        .map((row) => row.querySelector('td[data-field="build"]')?.textContent).filter(Boolean).sort();
 
     // The tasks column filters by its summary
     userEvent.click(screen.getByRole('button', { name: 'Filter Tasks' }));
