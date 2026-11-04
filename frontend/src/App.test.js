@@ -847,6 +847,29 @@ test('clicking anywhere on a build row expands and collapses it, but its actions
     expect(row).toHaveAttribute('aria-expanded', 'false');
 });
 
+test('a build without owners shows the username parameter as its owner', () => {
+    const anonymous = {
+        ...BUILD, id: 'anon-build', Id: 'anon-build', Owners: [],
+        Parameters: [{ Key: 'config.username', Value: 'dave' }],
+    };
+    const owned = { ...BUILD, Parameters: [{ Key: 'config.username', Value: 'erin' }] };
+    render(<App />);
+    snapshot(BUILD_TASKS, [], 0, [owned, anonymous]);
+    const table = () => screen.getByRole('table', { name: 'Builds', hidden: true });
+    const owners = (id) => within(table()).getByText(id).closest('tr').querySelector('td[data-field="owners"]').textContent;
+
+    expect(owners('anon-build')).toBe('dave');
+    // Authenticated owners take precedence
+    expect(owners('build-012345')).toBe('alice');
+
+    userEvent.click(within(within(table()).getByText('anon-build').closest('tr')).getByRole('button', { name: 'Expand build' }));
+    expect(within(screen.getByRole('table', { name: 'Build details' })).getByText('dave')).toBeInTheDocument();
+
+    userEvent.click(screen.getByRole('button', { name: 'Filter Owners' }));
+    userEvent.type(screen.getByRole('textbox', { name: 'Filter Owners' }), 'dave');
+    expect([...table().querySelectorAll('td[data-field="build"]')].map((cell) => cell.textContent)).toEqual(['anon-build']);
+});
+
 test('clicking a builds column header sorts by it, and clicking again reverses the order', () => {
     const older = { ...BUILD, id: 'older-build', Id: 'older-build', Scheduled: stamp(NOW - 600000), Owners: ['bob'] };
     const newer = { ...BUILD, id: 'newer-build', Id: 'newer-build', Scheduled: stamp(NOW - 1000), Owners: ['carol'] };

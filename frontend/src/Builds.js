@@ -41,6 +41,17 @@ function taskSummary(build) {
     .join(', ');
 }
 
+// Who submitted the build: its owners, or else the username that the client
+// put in its parameters (params.username in Jolt). The parameter is only
+// shown; the scheduler lets owners alone stop a build.
+function owners(build) {
+  if (build.Owners.length) {
+    return build.Owners;
+  }
+  const username = build.Parameters.find(({ Key }) => Key === 'config.username')?.Value;
+  return username ? [username] : [];
+}
+
 // The texts of a build that the search field matches.
 function searchTexts(build) {
   return [
@@ -102,7 +113,7 @@ function BuildDetails({ build }) {
         label="Build details"
         rows={[
           ['ID', build.id],
-          ['Owners', build.Owners.length ? build.Owners.join(', ') : '-'],
+          ['Owners', owners(build).join(', ') || '-'],
         ]}
       />
       <DetailTable
@@ -125,8 +136,8 @@ class Builds extends React.Component {
         sx: { fontFamily: 'monospace' },
       },
       {
-        key: 'owners', label: 'Owners', value: (build) => build.Owners.join(', '),
-        render: (build) => <Attribution value={build.Owners.join(', ')} compact textOnly />, flex: 1,
+        key: 'owners', label: 'Owners', value: (build) => owners(build).join(', '),
+        render: (build) => <Attribution value={owners(build).join(', ')} compact textOnly />, flex: 1,
       },
       {
         key: 'origin', label: 'Origin', value: (build) => build.Origin,
