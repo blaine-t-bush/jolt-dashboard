@@ -104,7 +104,9 @@ Class components throughout, no hooks. `App` owns the lists (`tasks`, `workers`)
 one `selectedTask` full view, and passes them down. `Builds`, `Tasks` and `Workers` all use
 `DataTable`, an MUI `Table` with a search field, status buttons, a Columns chooser remembered in
 local storage, sortable and filterable headers (`ColumnFilter.js`), pages, and optional expandable
-rows, which the free MUI `DataGrid` doesn't have. Build rows and their task statistics are derived
+rows, which the free MUI `DataGrid` doesn't have. Cells never wrap: columns with a `flex` weight
+share the width the others leave and cut off with an ellipsis (`max-width: 0` on the cell), so a
+long value can neither wrap nor widen the table; give long-text columns a `flex`. Build rows and their task statistics are derived
 in `render` by `buildStats.js`.
 Task event reducers refresh the selected view before removal can hide an intermediate update in
 React's batching. `Tasks` also retains the last observed row for standalone use. An open details

@@ -126,23 +126,20 @@ class Builds extends React.Component {
       },
       {
         key: 'owners', label: 'Owners', value: (build) => build.Owners.join(', '),
-        render: (build) => <Attribution value={build.Owners.join(', ')} compact textOnly />,
-        sx: { maxWidth: 160 },
+        render: (build) => <Attribution value={build.Owners.join(', ')} compact textOnly />, flex: 1,
       },
       {
         key: 'origin', label: 'Origin', value: (build) => build.Origin,
-        render: (build) => <Attribution value={build.Origin} compact />,
-        sx: { maxWidth: 260 },
+        render: (build) => <Attribution value={build.Origin} compact />, flex: 2,
       },
-      { key: 'scheduled', label: 'Scheduled', value: scheduled, text: (build) => build.Scheduled, sx: { whiteSpace: 'nowrap' } },
-      { key: 'tasks', label: 'Tasks', value: activeTasks, text: taskSummary },
+      { key: 'scheduled', label: 'Scheduled', value: scheduled, text: (build) => build.Scheduled },
+      { key: 'tasks', label: 'Tasks', value: activeTasks, text: taskSummary, flex: 1 },
       {
         key: 'duration', label: 'Duration', value: (build) => buildDuration(build, now) ?? -1,
-        text: (build) => formatSeconds(buildDuration(build, now)), sx: { whiteSpace: 'nowrap' },
+        text: (build) => formatSeconds(buildDuration(build, now)),
       },
       {
-        key: 'actions', label: 'Actions', sortable: false, filterable: false, stopClick: true,
-        sx: { whiteSpace: 'nowrap', py: 0 },
+        key: 'actions', label: 'Actions', sortable: false, filterable: false, stopClick: true, sx: { py: 0 },
         render: (build) => {
           const filtered = filterBuildId === build.id;
           return (

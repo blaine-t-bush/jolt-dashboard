@@ -44,9 +44,18 @@ const HEADER_SEPARATOR = {
 // Padding of the cells of rows, between the small and the medium size.
 const ROW_PADDING = { py: 1.25 };
 
-// Columns are { key, label, value(row), text(row), render(row), sortable,
-// filterable, hideable, sx }. value sorts the column, text filters it and
-// render shows it; each defaults to the previous one.
+// Cells stay on one line. Like the columns of a data grid, flexible columns
+// divide the width the others leave by their weights, and cut off what
+// doesn't fit: max-width 0 keeps their contents from widening the table.
+const CELL = { whiteSpace: 'nowrap' };
+const FLEXIBLE_CELL = { ...CELL, maxWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' };
+
+// Columns are { key, label, value(row), text(row), render(row), flex,
+// sortable, filterable, hideable, sx }. value sorts the column, text filters
+// it and render shows it; each defaults to the previous one. A column with a
+// flex weight shares the width; others are as wide as their contents. Cells
+// of flexible columns show their whole text on hover, unless they render
+// their own contents, which then should.
 function columnValue(column, row) {
   return column.value ? column.value(row) : row[column.key];
 }
@@ -123,17 +132,21 @@ class DataRow extends React.Component {
               </IconButton>
             </TableCell>
           )}
-          {columns.map((column) => (
-            <TableCell
-              key={column.key}
-              data-field={column.key}
-              sx={{ ...ROW_PADDING, ...column.sx }}
-              // Buttons in a cell act on their own, without expanding the row
-              onClick={column.stopClick ? (event) => event.stopPropagation() : undefined}
-            >
-              {column.render ? column.render(row) : columnText(column, row)}
-            </TableCell>
-          ))}
+          {columns.map((column) => {
+            const text = column.render ? null : columnText(column, row);
+            return (
+              <TableCell
+                key={column.key}
+                data-field={column.key}
+                title={column.flex && text != null && text !== '' ? String(text) : undefined}
+                sx={{ ...ROW_PADDING, ...(column.flex ? FLEXIBLE_CELL : CELL), ...column.sx }}
+                // Buttons in a cell act on their own, without expanding the row
+                onClick={column.stopClick ? (event) => event.stopPropagation() : undefined}
+              >
+                {column.render ? column.render(row) : text}
+              </TableCell>
+            );
+          })}
         </TableRow>
         {expandable && (
           <TableRow>
@@ -318,6 +331,7 @@ class DataTable extends React.Component {
     const shown = filtered.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
     const expandable = Boolean(renderDetails);
     const width = columns.length + (expandable ? 1 : 0);
+    const flexTotal = columns.reduce((total, { flex }) => total + (flex || 0), 0);
     return (
       <div>
         {this.renderToolbar()}
@@ -343,6 +357,7 @@ class DataTable extends React.Component {
                       // Named by its label alone, not also by its filter button
                       aria-label={column.label}
                       sortDirection={orderBy === column.key ? order : false}
+                      style={column.flex ? { width: `${(100 * column.flex) / flexTotal}%` } : undefined}
                       // The whole header sorts; the filter button stops its clicks
                       onClick={sortable ? () => this.sortBy(column.key) : undefined}
                       sx={{

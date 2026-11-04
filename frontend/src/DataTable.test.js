@@ -59,3 +59,28 @@ test('clicking anywhere on a header sorts, but its filter button does not', () =
     userEvent.keyboard('{Escape}');
     expect(screen.getByRole('columnheader', { name: 'Number', hidden: true })).toHaveAttribute('aria-sort', 'descending');
 });
+
+test('cells stay on one line, and flexible columns share the width and truncate', () => {
+    const text = 'a-name-that-is-much-too-long-for-its-column';
+    render(table({
+        rows: [{ id: 'row-00', n: 0, name: text, owner: 'someone' }],
+        columns: [
+            { key: 'id', label: 'ID' },
+            { key: 'name', label: 'Name', flex: 3 },
+            { key: 'owner', label: 'Owner', flex: 1, render: (row) => <b>{row.owner}</b> },
+        ],
+        defaultSort: { key: 'id', order: 'asc' },
+    }));
+    const cell = (field) => screen.getByRole('table', { name: 'Rows' }).querySelector(`td[data-field="${field}"]`);
+    // Fixed columns are as wide as their contents
+    expect(cell('id')).toHaveStyle({ whiteSpace: 'nowrap' });
+    expect(cell('id')).not.toHaveStyle({ maxWidth: '0' });
+    expect(screen.getByRole('columnheader', { name: 'ID' }).style.width).toBe('');
+    // Flexible columns divide the rest by their weights, and cut off what doesn't fit
+    expect(cell('name')).toHaveStyle({ maxWidth: '0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' });
+    expect(cell('name')).toHaveAttribute('title', text);
+    expect(screen.getByRole('columnheader', { name: 'Name' }).style.width).toBe('75%');
+    expect(screen.getByRole('columnheader', { name: 'Owner' }).style.width).toBe('25%');
+    // Rendered cells name their own contents
+    expect(cell('owner')).not.toHaveAttribute('title');
+});

@@ -61,27 +61,25 @@ class Tasks extends React.Component {
 
   columns() {
     return [
-      { key: 'RoutingKey', label: 'Labels' },
-      { key: 'Worker', label: 'Worker' },
-      { key: 'Name', label: 'Name' },
-      { key: 'Identity', label: 'Identity', sx: { maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' } },
+      { key: 'RoutingKey', label: 'Labels', flex: 1 },
+      { key: 'Worker', label: 'Worker', flex: 2 },
+      { key: 'Name', label: 'Name', flex: 4 },
+      { key: 'Identity', label: 'Identity', flex: 2 },
       {
         key: 'Origin', label: 'Origin', value: (task) => task.Build?.Origin || '',
-        render: (task) => <Attribution value={task.Build?.Origin || ''} compact />,
-        sx: { maxWidth: 260 },
+        render: (task) => <Attribution value={task.Build?.Origin || ''} compact />, flex: 1,
       },
-      { key: 'Queued', label: 'Queued', sx: { whiteSpace: 'nowrap' } },
-      { key: 'Assigned', label: 'Assigned', sx: { whiteSpace: 'nowrap' } },
-      { key: 'Started', label: 'Started', sx: { whiteSpace: 'nowrap' } },
-      { key: 'Ended', label: 'Finished', sx: { whiteSpace: 'nowrap' } },
+      { key: 'Queued', label: 'Queued' },
+      { key: 'Assigned', label: 'Assigned' },
+      { key: 'Started', label: 'Started' },
+      { key: 'Ended', label: 'Finished' },
       {
         key: 'Duration', label: 'Duration', value: (task) => taskDuration(task) ?? -1,
-        text: (task) => formatDuration(taskDuration(task)), sx: { whiteSpace: 'nowrap' },
+        text: (task) => formatDuration(taskDuration(task)),
       },
       { key: 'Status', label: 'Status' },
       {
-        key: 'actions', label: 'Actions', sortable: false, filterable: false,
-        sx: { whiteSpace: 'nowrap', py: 0 },
+        key: 'actions', label: 'Actions', sortable: false, filterable: false, sx: { py: 0 },
         render: (task) => (
           <div style={{ display: 'flex' }}>
             <LogButton onClick={() => this.onLogClick(task)} label={`View details and log for ${task.Name}`} />

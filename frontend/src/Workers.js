@@ -17,11 +17,11 @@ class Workers extends React.Component {
 
     columns() {
         return [
-            { key: 'Hostname', label: 'Worker' },
-            { key: 'Labels', label: 'Labels' },
-            { key: 'TaskName', label: 'Task' },
+            { key: 'Hostname', label: 'Worker', flex: 2 },
+            { key: 'Labels', label: 'Labels', flex: 2 },
+            { key: 'TaskName', label: 'Task', flex: 4 },
             { key: 'TaskStatus', label: 'Status' },
-            { key: 'Enlisted', label: 'Enlisted', sx: { whiteSpace: 'nowrap' } },
+            { key: 'Enlisted', label: 'Enlisted' },
             {
                 key: 'actions', label: 'Actions', sortable: false, filterable: false, sx: { py: 0 },
                 render: (worker) => (
